@@ -1,84 +1,81 @@
-import { useState, useEffect } from "react";
-import randomWords from "random-words";
+import { useState, useEffect } from 'react'
+import randomWords from 'random-words'
+import { GridColDef } from '@mui/x-data-grid'
+
+import {
+  ButtonElement,
+  DataGridElement,
+  TextFieldElement,
+  TypographyElement,
+  YouWon,
+} from '@/components'
+import { clickHandler } from '@/utils/guessLetterFunc'
+import { IGuessedList } from '@/model/utils/home.model'
+
+const columns: GridColDef[] = [
+  { field: 'id', hide: true },
+  { field: 'guess', headerName: 'Guess', flex: 1, minWidth: 150 },
+  {
+    field: 'matchingLetters',
+    headerName: 'Matching Letters',
+    flex: 1,
+    minWidth: 150,
+  },
+]
 
 export default function Home() {
-  const [word, setWord] = useState<string[]>([]);
-  const [guessedLetters, setGuessedLetters] = useState('');
-  const [numIncorrectGuesses, setNumIncorrectGuesses] = useState(0);
-  const [isWon, setISWon] = useState<boolean>(false);
+  const [word, setWord] = useState<string[]>([])
+  const [isWon, setIsWon] = useState<boolean>(false)
+  console.log('🚀 ~ file: index.tsx:28 ~ Home ~ word:', word)
+  const [guessedLetters, setGuessedLetters] = useState('')
+  const [guessedList, setGuessedList] = useState<Array<IGuessedList>>([])
 
   useEffect(() => {
-    setWord(randomWords(1));
-  }, []);
-
-  useEffect(() => {
-    if (isWon) alert('you win');
-  }, [isWon]);
-
-  const handleSubmit = (e: any) => {
-    e.preventDefault();
-
-    const actualWordLetters = Array.from(new Set<string>(word[0]));
-    const guessWordLetters = Array.from(new Set<string>(guessedLetters));
-
-    if (guessedLetters === word[0]) return setISWon(true);
-
-    const commonElements = actualWordLetters.filter((element) => guessWordLetters.includes(element));
-
-    console.log('commonElements', commonElements)
-    //TODO: 
-  }
-
-  // const clickHandler = (e: any) => {
-  //   e?.preventDefault();
-
-  //   const letter = e.target.value.toLowerCase();
-  //   if (word)
-  // }
-
-  // const handleGuess = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   event.preventDefault();
-  //   const guessedLetter = event.target.elements.guess.value.toLowerCase();
-  //   if (!guessedLetters.includes(guessedLetter)) {
-  //     setGuessedLetters([...guessedLetters, guessedLetter]);
-  //     if (!word.includes(guessedLetter)) {
-  //       setNumIncorrectGuesses(numIncorrectGuesses + 1);
-  //     }
-  //   }
-  //   event.target.reset();
-  // };
-
-  // const hiddenWord = word
-  //   .split("")
-  //   .map((letter) => (guessedLetters.includes(letter) ? letter : "_"))
-  //   .join(" ");
-
-  // const gameOver = numIncorrectGuesses >= 6 || !hiddenWord.includes("_");
+    setWord(randomWords(1))
+  }, [])
 
   return (
-    <div className="container">
-      <h1>Guess the Word</h1>
+    <div className="w-full p-8">
+      {isWon && <YouWon />}
 
-      <form onSubmit={handleSubmit}>
-        <label>guess a letter: </label>
-        <input value={guessedLetters} onChange={({ target }) => setGuessedLetters(target.value)} />
-        <button type="submit">submit</button>
-      </form>
+      <div className={`w-full ${isWon && 'opacity-50'}`}>
+        <TypographyElement variant="h5">Guess The Word!</TypographyElement>
+        <div
+          className={`flex flex-row w-full ${isWon && 'pointer-events-none'}`}
+        >
+          <TextFieldElement
+            className="w-1/2 flex mr-6"
+            value={guessedLetters}
+            onChange={({ target }: any) => setGuessedLetters(target.value)}
+          />
+          <ButtonElement
+            variant="contained"
+            className="w-[150px]"
+            onClick={(e) => [
+              !!(guessedLetters === word[0]) && setIsWon(true),
 
-      {/* <p>{hiddenWord}</p>
-      <p>Incorrect guesses: {numIncorrectGuesses}</p>
-      {gameOver && (
-        <p>{numIncorrectGuesses >= 6 ? "Game over!" : "You win!"}</p>
-      )}
-      {!gameOver && (
-        <form onSubmit={handleGuess}>
-          <label>
-            Guess a letter:
-            <input type="text" name="guess" maxLength="1" />
-          </label>
-          <button type="submit">Guess</button>
-        </form>
-      )} */}
+              clickHandler(
+                e,
+                guessedLetters,
+                word,
+                setGuessedLetters,
+                setGuessedList,
+              ),
+            ]}
+          >
+            Submit
+          </ButtonElement>
+        </div>
+
+        {guessedList.length ? (
+          <>
+            <TypographyElement variant="h5" className="my-5">
+              Gussed Words!
+            </TypographyElement>
+            <DataGridElement columns={columns} rows={guessedList} />
+          </>
+        ) : null}
+      </div>
     </div>
-  );
+  )
 }
